@@ -8,7 +8,7 @@ local _write_log = function(prefix, message)
 
 	if log_file then
 		local time = os.date("%Y-%m-%d %H:%M:%S")
-		log_file:write(string.format("[%s] %s: %s\n", time, prefix, message))
+		log_file:write(string.format("[%s] %s %s\n", time, prefix, message))
 		log_file:close()
 	end
 end

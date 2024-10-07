@@ -31,13 +31,15 @@ local move = function(dir)
 	if not bbouncer.is_bouncer_window(old_win) then
 		return
 	end
+	local buf = vim.api.nvim_get_current_buf()
+
 	vim.cmd("wincmd " .. dir)
 	local new_win = vim.api.nvim_get_current_win()
 	if not bbouncer.is_bouncer_window(new_win) then
 		return
 	end
 
-	local buf = vim.api.nvim_get_current_buf()
+	log.info("MOVE: Moving buf " .. buf .. " from win " .. old_win .. " to win " .. new_win .. "...")
 
 	if new_win ~= old_win then
 		log.info("MOVE should MOVE")
@@ -52,6 +54,9 @@ local move = function(dir)
 		split_with_win_cmd(dir)
 		new_win = vim.api.nvim_get_current_win()
 		commands.move_buffer(old_win, new_win, buf)
+		-- There is a bug here where the autocommands doesn't pick up the new buffer.
+		-- Will manually create for now
+		commands.create()
 	else
 		log.info("MOVE should SPLIT")
 		local buf_data = bbouncer.get_window_buffer(old_win, buf)
@@ -64,6 +69,8 @@ local move = function(dir)
 
 	bbouncer.focus_buffer(new_win, buf)
 	bbouncer.update()
+
+	log.info("MOVE: Success! Moved buf " .. buf .. " from win " .. old_win .. " to win " .. new_win .. "!")
 end
 
 vim.keymap.set("n", "<leader>l", function()

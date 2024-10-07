@@ -22,7 +22,8 @@ return function()
 	bbouncer_state.for_each(function(win, state)
 		local offset = get_buffer_offset()
 		local spaces = string.rep(" ", offset)
-		local winline = spaces
+		-- local winline = spaces
+		local winline = win .. " "
 
 		for _, buf in ipairs(state["bufs"]) do
 			if vim.api.nvim_buf_is_valid(buf.buf) then
@@ -31,9 +32,9 @@ return function()
 
 				local tab = ""
 				if is_modified then
-					tab = tab .. "   " .. filename .. " + "
+					tab = tab .. " " .. buf.buf .. " " .. filename .. " + "
 				else
-					tab = tab .. "   " .. filename .. "   "
+					tab = tab .. " " .. buf.buf .. " " .. filename .. "   "
 				end
 
 				if buf.active == active_value.INACTIVE then
