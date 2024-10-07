@@ -15,9 +15,12 @@ local err_handler = function(fn)
 	end
 end
 
+bufbouncer.window_buffer_count = bbouncer_state.window_buffer_count
+bufbouncer.window_count = bbouncer_state.window_count
 bufbouncer.is_bouncer_window = bbouncer_state.is_bouncer_window
 bufbouncer.bwipeout = bbouncer_state.bwipeout
 bufbouncer.focus_buffer = bbouncer_state.focus_buffer
+bufbouncer.get_window_buffer = bbouncer_state.get_window_buffer
 
 bufbouncer.remove_buf_from_win = function(buf, win, opts)
 	log.info("Removing buf " .. buf .. " from win " .. win)
@@ -70,7 +73,7 @@ bufbouncer.remove_buf_from_win = function(buf, win, opts)
 		end
 	end
 
-	table.remove(win_data["bufs"], buf_index)
+	bbouncer_state.remove_buffer_from_window(win, buf)
 	if #win_data["bufs"] == 0 then
 		local new_buf = vim.api.nvim_create_buf(false, true)
 		vim.api.nvim_win_set_buf(win, new_buf)
@@ -85,31 +88,9 @@ bufbouncer.remove_buf_from_win = function(buf, win, opts)
 end
 
 bufbouncer.move_buffer = function(from_win, to_win, buf)
-	local previous_buffer = nil
-	for win_id, state in pairs(bufbouncer._state) do
-		local window_bufs = state["bufs"]
-		if window_bufs ~= nil then
-			local is_from_window = win_id == from_win
-
-			if is_from_window then
-				for i, b in ipairs(window_bufs) do
-					if b.buf == buf then
-						table.remove(window_bufs, i)
-						break
-					end
-					previous_buffer = b.buf
-				end
-			end
-		end
-	end
-
-	if not previous_buffer then
-		previous_buffer = vim.api.nvim_create_buf(true, false)
-		bufbouncer.add_buffer_to_window(from_win, previous_buffer, "dirtyfix/[Empty]")
-	end
-
 	local cursor = vim.api.nvim_win_get_cursor(from_win)
-	vim.api.nvim_win_set_buf(from_win, previous_buffer)
+	local b = bbouncer_state.remove_buffer_from_window(from_win, buf)
+	bbouncer_state.add_buffer_to_window(to_win, buf, b.file)
 	vim.api.nvim_win_set_buf(to_win, buf)
 	vim.api.nvim_win_set_cursor(to_win, cursor)
 end
@@ -125,27 +106,7 @@ bufbouncer.add_buffer_to_window = function(win, buf, filename)
 		return
 	end
 
-	if not bufbouncer.is_bouncer_window(win) then
-		vim.notify("Window is not in bufbouncer, cannot add buffer to it", vim.log.levels.WARN)
-		return
-	end
-
-	local window_bufs = bufbouncer._state["windows"][win]["bufs"]
-	if window_bufs == nil then
-		vim.notify("Window bufs not found in win bufbouncer state. Cannot add buffer.", vim.log.levels.WARN)
-		return
-	end
-
-	for _, b in ipairs(window_bufs) do
-		if b.buf == buf then
-			-- buffer is already in window. Doing nothing
-			return
-		end
-	end
-
-	log.info(string.format("Adding Buffer To Window - win: %s, file: %s", win, filename))
-
-	table.insert(bufbouncer._state.windows[win]["bufs"], { buf = buf, file = filename, active = "inactive" })
+	bbouncer_state.add_buffer_to_window(win, buf, filename)
 end
 
 bufbouncer.create = function()
@@ -188,21 +149,20 @@ bufbouncer.setup = function(config)
 		pattern = "*",
 		group = bufbouncer.augroup,
 		callback = function(evt)
-			local evt_win = vim.api.nvim_get_current_win()
-			local is_bouncer = bufbouncer.is_bouncer_window(evt_win)
-			local null_buffer = evt.file == ""
-			log.info(string.format("BufEnter: window_id: %s, is_bouncer: %s", evt_win, tostring(is_bouncer)))
-			if not is_bouncer or null_buffer then
-				return
-			end
+			err_handler(function()
+				local evt_win = vim.api.nvim_get_current_win()
+				local is_bouncer = bufbouncer.is_bouncer_window(evt_win)
+				local null_buffer = evt.file == ""
+				log.info(string.format("BufEnter: window_id: %s, is_bouncer: %s", evt_win, tostring(is_bouncer)))
+				if not is_bouncer or null_buffer then
+					return
+				end
 
-			log.info(string.format("BufEnterAddFocusUpdate: file: %s", evt.file))
-			bufbouncer.add_buffer_to_window(evt_win, evt.buf, evt.file)
-			bufbouncer.focus_buffer(evt_win, evt.buf)
-			log.info("Did focus buffer")
-			bufbouncer.update()
-
-			log.info("Did update")
+				log.info(string.format("BufEnterAddFocusUpdate: file: %s", evt.file))
+				bufbouncer.add_buffer_to_window(evt_win, evt.buf, evt.file)
+				bufbouncer.focus_buffer(evt_win, evt.buf)
+				bufbouncer.update()
+			end)
 		end,
 	})
 
