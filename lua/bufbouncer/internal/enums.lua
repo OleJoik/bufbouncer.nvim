@@ -12,4 +12,10 @@ enums.Highlights = {
 	BufBouncerFocused = "BufBouncerFocused",
 }
 
+enums.WindowActive = {
+	INACTIVE = "inactive",
+	SELECTED = "selected",
+	FOCUSED = "focused",
+}
+
 return enums

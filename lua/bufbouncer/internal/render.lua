@@ -1,3 +1,5 @@
+local log = require("bufbouncer.internal.log")
+local active_value = require("bufbouncer.internal.enums").WindowActive
 local bbouncer_state = require("bufbouncer.internal.state")
 
 local function get_buffer_offset()
@@ -17,7 +19,7 @@ local function get_buffer_offset()
 end
 
 return function()
-	for win, state in pairs(bbouncer_state._state) do
+	bbouncer_state.for_each(function(win, state)
 		local offset = get_buffer_offset()
 		local spaces = string.rep(" ", offset)
 		local winline = spaces
@@ -34,9 +36,9 @@ return function()
 					tab = tab .. "   " .. filename .. "   "
 				end
 
-				if buf.active == "inactive" then
+				if buf.active == active_value.INACTIVE then
 					winline = winline .. "%#BufBouncerInactive#" .. tab .. " "
-				elseif buf.active == "selected" then
+				elseif buf.active == active_value.SELECTED then
 					winline = winline .. "%#BufBouncerSelected#" .. tab .. "%#BufBouncerInactive# "
 				else
 					winline = winline .. "%#BufBouncerFocused#" .. tab .. "%#BufBouncerInactive# "
@@ -49,5 +51,5 @@ return function()
 		winline = winline .. "%#Normal#"
 
 		vim.wo[win].winbar = winline
-	end
+	end)
 end

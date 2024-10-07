@@ -4,7 +4,7 @@ local render = require("bufbouncer.internal.render")
 local commands = {}
 
 commands.close_win = function(win)
-	local win_data = bbouncer_state._state[win]
+	local win_data = bbouncer_state.get_window(win)
 	if win_data == nil then
 		log.warn("Attempted to close win " .. win .. " but it is not known to bufbouncer.")
 		return
@@ -18,13 +18,15 @@ commands.close_win = function(win)
 
 	local error_closing_buf = false
 	for i, b in ipairs(bufs) do
-		local window_buffers = vim.fn.win_findbuf(b.buf)
-		if #window_buffers == 1 then
+		local bouncers = bbouncer_state.bouncers_with_buffer(b.buf)
+		if #bouncers == 1 then
 			log.info(
 				"buf " .. b.buf .. " (" .. b.file .. ") is dangling after closing win " .. win .. ". Closing buf..."
 			)
 
-			local success, err = pcall(vim.api.nvim_buf_delete, b.buf, {})
+			-- Todo: First check if buffer is used in another window than this one.
+			-- If so, do not close.
+			local success, err = pcall(require("bufdelete").bufwipeout, b.buf)
 			if not success and err ~= nil then
 				log.error(err)
 				vim.notify(err, vim.log.levels.ERROR)
@@ -42,11 +44,12 @@ commands.close_win = function(win)
 		return
 	end
 
-	bbouncer_state._state[win] = nil
+	bbouncer_state.remove_window(win)
 	if vim.api.nvim_win_is_valid(win) then
+		log.info("Closing window " .. win)
 		local success, err = pcall(vim.api.nvim_win_close, win, false)
 		if not success and err ~= nil then
-			bbouncer_state._state[win] = win_data
+			bbouncer_state.windows[win] = win_data
 			vim.notify(err, vim.log.levels.ERROR)
 
 			log.info("close_win had an error the window. Updating UI and returning.")

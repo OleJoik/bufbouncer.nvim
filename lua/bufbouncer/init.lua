@@ -2,7 +2,7 @@ local log = require("bufbouncer.internal.log")
 local bbouncer_state = require("bufbouncer.internal.state")
 
 local bufbouncer = {}
-bufbouncer._state = bbouncer_state._state
+bufbouncer._state = bbouncer_state
 
 local err_handler = function(fn)
 	local success, result = xpcall(fn, function(err)
@@ -21,7 +21,7 @@ bufbouncer.focus_buffer = bbouncer_state.focus_buffer
 
 bufbouncer.remove_buf_from_win = function(buf, win, opts)
 	log.info("Removing buf " .. buf .. " from win " .. win)
-	local win_data = bufbouncer._state[win]
+	local win_data = bbouncer_state.get_window(win)
 	if win_data == nil then
 		log.error("Win " .. win .. " is not known to bufbouncer. Will not remove buf " .. buf)
 		return
@@ -130,7 +130,7 @@ bufbouncer.add_buffer_to_window = function(win, buf, filename)
 		return
 	end
 
-	local window_bufs = bufbouncer._state[win]["bufs"]
+	local window_bufs = bufbouncer._state["windows"][win]["bufs"]
 	if window_bufs == nil then
 		vim.notify("Window bufs not found in win bufbouncer state. Cannot add buffer.", vim.log.levels.WARN)
 		return
@@ -145,7 +145,7 @@ bufbouncer.add_buffer_to_window = function(win, buf, filename)
 
 	log.info(string.format("Adding Buffer To Window - win: %s, file: %s", win, filename))
 
-	table.insert(bufbouncer._state[win]["bufs"], { buf = buf, file = filename, active = "inactive" })
+	table.insert(bufbouncer._state.windows[win]["bufs"], { buf = buf, file = filename, active = "inactive" })
 end
 
 bufbouncer.create = function()
@@ -153,7 +153,7 @@ bufbouncer.create = function()
 	local buf = vim.api.nvim_get_current_buf()
 	local filename = vim.api.nvim_buf_get_name(buf)
 	log.info("Creating BufBouncer!: win: " .. win .. " buf: " .. buf .. " file: " .. filename)
-	bufbouncer._state[win] = { bufs = {} }
+	bbouncer_state.add_window(win)
 	if filename ~= "" then
 		bufbouncer.add_buffer_to_window(win, buf, filename)
 		bufbouncer.focus_buffer(win, buf)
@@ -199,7 +199,10 @@ bufbouncer.setup = function(config)
 			log.info(string.format("BufEnterAddFocusUpdate: file: %s", evt.file))
 			bufbouncer.add_buffer_to_window(evt_win, evt.buf, evt.file)
 			bufbouncer.focus_buffer(evt_win, evt.buf)
+			log.info("Did focus buffer")
 			bufbouncer.update()
+
+			log.info("Did update")
 		end,
 	})
 
