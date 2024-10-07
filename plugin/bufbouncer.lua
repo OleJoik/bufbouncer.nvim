@@ -41,7 +41,7 @@ local move = function(dir)
 
 	if new_win ~= old_win then
 		log.info("MOVE should MOVE")
-		bbouncer.move_buffer(old_win, new_win, buf)
+		commands.move_buffer(old_win, new_win, buf)
 
 		if bbouncer.window_buffer_count(old_win) == 0 then
 			log.info("MOVE should CLOSE OLD")
@@ -51,14 +51,14 @@ local move = function(dir)
 		log.info("MOVE should SPLIT AND MOVE")
 		split_with_win_cmd(dir)
 		new_win = vim.api.nvim_get_current_win()
-		bbouncer.move_buffer(old_win, new_win, buf)
+		commands.move_buffer(old_win, new_win, buf)
 	else
 		log.info("MOVE should SPLIT")
 		local buf_data = bbouncer.get_window_buffer(old_win, buf)
 		if buf_data ~= nil then
 			split_with_win_cmd(dir)
 			new_win = vim.api.nvim_get_current_win()
-			bbouncer.add_buffer_to_window(new_win, buf, buf_data.file)
+			commands.add_buffer_to_window(new_win, buf, buf_data.file)
 		end
 	end
 

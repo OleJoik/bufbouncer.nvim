@@ -27,26 +27,28 @@ state.add_window = function(win)
 end
 
 state.add_buffer_to_window = function(win, buf, file)
+	log.info("STATE: Adding buffer " .. buf .. " to window " .. win .. "...")
+
 	if not state.is_bouncer_window(win) then
-		vim.notify("Window is not in bufbouncer, cannot add buffer to it", vim.log.levels.WARN)
+		log.warn("Window is not in bufbouncer, cannot add buffer to it")
 		return
 	end
 
 	local window_bufs = state.windows[win]["bufs"]
 	if window_bufs == nil then
-		vim.notify("Window bufs not found in win bufbouncer state. Cannot add buffer.", vim.log.levels.WARN)
+		log.warn("win (" .. win .. ") bufs not found in win bufbouncer state. Cannot add buffer.")
 		return
 	end
 
 	for _, b in ipairs(window_bufs) do
 		if b.buf == buf then
-			-- buffer is already in window. Doing nothing
+			log.info("buf " .. buf .. "already in win " .. win .. ". Doing nothing.")
 			return
 		end
 	end
 
-	log.info(string.format("Adding Buffer To Window - win: %s, file: %s", win, file))
 	table.insert(state.windows[win]["bufs"], { buf = buf, file = file, active = "inactive" })
+	log.info("STATE: Added buffer " .. buf .. " to window " .. win .. "!")
 end
 
 function state.remove_buffer_from_window(win, buf)

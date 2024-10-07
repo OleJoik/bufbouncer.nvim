@@ -57,4 +57,15 @@ logging.debug = function(message)
 	_write_log("DEBUG", message)
 end
 
+function logging.capture_error_logs(fn)
+	local success, result = xpcall(fn, function(err)
+		local trace = debug.traceback(tostring(err), 2)
+		logging.error(trace)
+		return trace
+	end)
+	if not success then
+		vim.notify(result, vim.log.levels.ERROR)
+	end
+end
+
 return logging
