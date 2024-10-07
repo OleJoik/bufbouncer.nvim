@@ -20,8 +20,8 @@ end
 
 return function()
 	bbouncer_state.for_each(function(win, state)
-		local offset = get_buffer_offset()
-		local spaces = string.rep(" ", offset)
+		-- local offset = get_buffer_offset()
+		-- local spaces = string.rep(" ", offset)
 		-- local winline = spaces
 		local winline = win .. " "
 
@@ -29,12 +29,18 @@ return function()
 			if vim.api.nvim_buf_is_valid(buf.buf) then
 				local filename = buf.file:match("^.+[\\/](.+)$")
 				local is_modified = vim.api.nvim_buf_get_option(buf.buf, "modified")
+				local ext = vim.fn.fnamemodify(filename, ":e")
 
-				local tab = ""
+				local icon, _ = require("nvim-web-devicons").get_icon(filename, ext, { default = true })
+				if icon == nil then
+					icon = "" -- note: Highlight group is captured by _ above -- note: Highlight group is captured by _ above
+				end
+
+				local tab = " " .. buf.buf .. " " .. icon .. " " .. filename
 				if is_modified then
-					tab = tab .. " " .. buf.buf .. " " .. filename .. " + "
+					tab = tab .. " + "
 				else
-					tab = tab .. " " .. buf.buf .. " " .. filename .. "   "
+					tab = tab .. "   "
 				end
 
 				if buf.active == active_value.INACTIVE then
