@@ -1,4 +1,5 @@
 local log = require("bufbouncer.internal.log")
+local enums = require("bufbouncer.internal.enums")
 
 local state = { windows = {} }
 -- example:
@@ -58,7 +59,17 @@ function state.remove_buffer_from_window(win, buf)
 			if win == win_id then
 				for i, b in ipairs(window_bufs) do
 					if b.buf == buf then
-						return table.remove(window_bufs, i)
+						local next_index = nil
+						if #window_bufs > 1 and b.active ~= enums.WindowActive.INACTIVE then
+							if i > 1 then
+								next_index = i - 1
+							else
+								next_index = i
+							end
+
+							window_bufs[next_index].active = enums.WindowActive.SELECTED
+						end
+						return { buf_data = table.remove(window_bufs, i), next_index = next_index }
 					end
 				end
 			end
