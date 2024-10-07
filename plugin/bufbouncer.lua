@@ -1,10 +1,6 @@
 local log = require("bufbouncer.internal.log")
 vim.api.nvim_create_user_command("BufBounceCreate", function()
-	require("bufbouncer").create()
-end, {})
-
-vim.api.nvim_create_user_command("BufBounceUpdate", function()
-	require("bufbouncer").update()
+	require("bufbouncer.commands").create()
 end, {})
 
 require("bufbouncer").setup()
@@ -23,6 +19,8 @@ local split_with_win_cmd = function(dir)
 	end
 end
 
+-- Todo: Move this function to commands module probably...
+-- Also, check why collapsing windows are so slow...?
 local move = function(dir)
 	local bbouncer = require("bufbouncer")
 	local commands = require("bufbouncer.commands")
