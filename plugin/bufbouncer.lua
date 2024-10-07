@@ -3,10 +3,6 @@ vim.api.nvim_create_user_command("BufBounceCreate", function()
 	require("bufbouncer.commands").create()
 end, {})
 
-require("bufbouncer").setup()
-require("nvim-web-devicons").setup()
-log.info(vim.inspect(require("nvim-web-devicons").get_icons()))
-
 local split_with_win_cmd = function(dir)
 	if dir == "l" then
 		vim.cmd("vsplit")

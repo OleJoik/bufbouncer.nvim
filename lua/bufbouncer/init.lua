@@ -1,6 +1,8 @@
+local log = require("bufbouncer.internal.log")
 local bbouncer_state = require("bufbouncer.internal.state")
 local render = require("bufbouncer.internal.render")
 local setup_autocmd = require("bufbouncer.internal.autocommands")
+local config = require("bufbouncer.internal.config")
 
 local bufbouncer = {}
 bufbouncer.focus_buffer = bbouncer_state.focus_buffer
@@ -10,10 +12,12 @@ bufbouncer.get_window_buffer = bbouncer_state.get_window_buffer
 
 bufbouncer.update = render
 
-bufbouncer.setup = function(config)
-	bufbouncer._config = vim.tbl_deep_extend("force", require("bufbouncer.internal.config"), config or {})
+bufbouncer.setup = function(user_config)
+	config.selected = vim.tbl_deep_extend("force", config.default, user_config or {})
 
-	setup_autocmd(bufbouncer._config)
+	log.info("Setting up plugin with config: " .. vim.inspect(config))
+
+	setup_autocmd(config.selected)
 end
 
 return bufbouncer

@@ -20,10 +20,18 @@ end
 
 return function()
 	bbouncer_state.for_each(function(win, state)
-		-- local offset = get_buffer_offset()
-		-- local spaces = string.rep(" ", offset)
-		-- local winline = spaces
-		local winline = win .. " "
+		local winline = ""
+
+		local config = require("bufbouncer.internal.config").selected
+
+		log.info("RENDERING: " .. vim.inspect(config.debug))
+		if config.debug.show_win_nr then
+			winline = win .. " "
+		else
+			local offset = get_buffer_offset()
+			local spaces = string.rep(" ", offset)
+			winline = spaces
+		end
 
 		for _, buf in ipairs(state["bufs"]) do
 			if vim.api.nvim_buf_is_valid(buf.buf) then
@@ -36,7 +44,13 @@ return function()
 					icon = "" -- note: Highlight group is captured by _ above -- note: Highlight group is captured by _ above
 				end
 
-				local tab = " " .. buf.buf .. " " .. icon .. " " .. filename
+				local tab = ""
+				if config.debug.show_buf_nr then
+					tab = " " .. buf.buf .. " " .. icon .. " " .. filename
+				else
+					tab = "   " .. icon .. " " .. filename
+				end
+
 				if is_modified then
 					tab = tab .. " + "
 				else

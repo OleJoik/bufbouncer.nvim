@@ -1,5 +1,3 @@
-local cfg = require("bufbouncer.internal.config")
-
 local logging = {}
 logging._file_path = vim.fn.stdpath("data") .. "/bufbouncer.nvim.log"
 
@@ -14,6 +12,7 @@ local _write_log = function(prefix, message)
 end
 
 logging.error = function(message)
+	local cfg = require("bufbouncer.internal.config").selected
 	if not cfg.logging.enabled then
 		return
 	end
@@ -22,6 +21,7 @@ logging.error = function(message)
 end
 
 logging.warn = function(message)
+	local cfg = require("bufbouncer.internal.config").selected
 	if not cfg.logging.enabled then
 		return
 	end
@@ -34,6 +34,7 @@ logging.warn = function(message)
 end
 
 logging.info = function(message)
+	local cfg = require("bufbouncer.internal.config").selected
 	if not cfg.logging.enabled then
 		return
 	end
@@ -46,6 +47,7 @@ logging.info = function(message)
 end
 
 logging.debug = function(message)
+	local cfg = require("bufbouncer.internal.config").selected
 	if not cfg.logging.enabled then
 		return
 	end
